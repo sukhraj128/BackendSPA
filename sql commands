@@ -1,0 +1,49 @@
+CREATE TABLE users (
+    ID INT NOT NULL AUTO_INCREMENT,
+    firstName VARCHAR(32),
+    lastName VARCHAR(32),
+    username VARCHAR(16) UNIQUE NOT NULL,
+    about TEXT,
+    dateRegistered DATETIME DEFAULT CURRENT_TIMESTAMP,
+    password VARCHAR(32),
+    passwordSalt VARCHAR(16),
+    email VARCHAR(64) UNIQUE NOT NULL,
+    avatarURL VARCHAR(64),
+    PRIMARY KEY (ID)
+);
+
+
+
+
+CREATE TABLE authors (
+    ID INT NOT NULL AUTO_INCREMENT,
+    firstName VARCHAR(32),
+    lastName VARCHAR(32),
+    bio TEXT,
+    profilePicURL VARCHAR(64),
+    dateAdded DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (ID)
+);
+
+
+CREATE TABLE Books (
+    BookID INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(255) NOT NULL,
+    AuthorID INT NOT NULL,
+    PublicationYear YEAR,
+    Genre VARCHAR(100),
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (AuthorID) REFERENCES authors(ID)
+);
+
+
+CREATE TABLE Reviews (
+    ReviewID INT AUTO_INCREMENT PRIMARY KEY,
+    UserID INT NOT NULL,
+    BookID INT NOT NULL,
+    Rating DECIMAL(3,2) NOT NULL CHECK (Rating >= 0 AND Rating <= 5),
+    ReviewText TEXT,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (UserID) REFERENCES users(ID),
+    FOREIGN KEY (BookID) REFERENCES Books(BookID)
+);
