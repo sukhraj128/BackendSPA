@@ -4,9 +4,11 @@ const app = new Koa();
 
 const special = require('./routes/special.js')
 const books = require('./routes/books.js');
+const users = require('./routes/users.js');
 
 app.use(special.routes());
 app.use(books.routes());
+app.use(users.routes());
 
 let port = process.env.PORT || 3000;
 

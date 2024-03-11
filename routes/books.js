@@ -1,14 +1,16 @@
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const model = require('../models/books');
+const auth = require('../controllers/auth');
+const {validateArticle} = require('../controllers/validation');
 
 const router = Router({prefix: '/api/v1/books'});
 
 router.get('/', getAll);
-router.post('/', bodyParser(), createBook);
+router.post('/', bodyParser(), validateArticle ,createBook);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), updateBook);
-router.del('/:id([0-9]{1,})', deleteBook);
+router.put('/:id([0-9]{1,})', bodyParser(), validateArticle ,updateBook);
+router.del('/:id([0-9]{1,})', auth,deleteBook);
 
 async function getAll(ctx) {
   let books = await model.getAll();
