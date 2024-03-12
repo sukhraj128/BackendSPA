@@ -1,17 +1,17 @@
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
-const model = require('../models/books');
+const model = require('../models/reviews');
 const auth = require('../controllers/auth');
-const {validateArticle} = require('../controllers/validation');
-const can = require('../permissions/books');
+const {validateReview} = require('../controllers/validation');
+const can = require('../permissions/reviews');
 
-const router = Router({prefix: '/api/v1/books'});
+const router = Router({prefix: '/api/v1/reviews'});
 
 router.get('/', getAll);
-router.post('/', bodyParser(), validateArticle ,createBook);
+router.post('/', bodyParser(), validateReview ,auth, createReview);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), auth ,validateArticle ,updateBook);
-router.del('/:id([0-9]{1,})', auth,deleteBook);
+router.put('/:id([0-9]{1,})', bodyParser(), auth  ,updateReview);
+router.del('/:id([0-9]{1,})', auth,deleteReview);
 
 async function getAll(ctx) {
   let books = await model.getAll();
@@ -28,40 +28,48 @@ async function getById(ctx) {
   }
 }
 
-async function createBook(ctx) {
+async function createReview(ctx) {
+  const userID = ctx.state.user.ID;
   const permission = can.create(ctx.state.user);
 
   if (!permission.granted) {
     ctx.status = 403;
-    ctx.body = { error: "Not allowed to create books" };
+    ctx.body = { error: "Not allowed to create Review" };
     return;
   }
 
-  const body = ctx.request.body;
-  let result = await model.add(body);
+  const { BookID, Rating, ReviewText } = ctx.request.body;
+  const reviewData = {
+    UserID: userID, 
+    BookID,
+    Rating,
+    ReviewText,
+  };
+
+  let result = await model.add(reviewData);
   if (result) {
     ctx.status = 201;
     ctx.body = { ID: result.insertId };
   } else {
     ctx.status = 400;
-    ctx.body = { error: "Failed to create book" };
+    ctx.body = { error: "Failed to create Review" };
   }
 }
 
-async function updateBook(ctx) {
+async function updateReview(ctx) {
   const id = ctx.params.id;
   const book = await model.getById(id);
   if (!book.length) {
     ctx.status = 404;
-    ctx.body = {error: "Book not found"};
+    ctx.body = {error: "Review not found"};
     return;
   }
 
-
+  console.log(ctx.state.user);
   const permission = can.update(ctx.state.user, book[0]); // This needs to be implemented based on your permissions logic
   if (!permission.granted) {
     ctx.status = 403;
-    ctx.body = {error: "Not allowed to edit this book"};
+    ctx.body = {error: "Not allowed to edit this Review"};
     return;
   }
 
@@ -72,15 +80,15 @@ async function updateBook(ctx) {
     ctx.body = {ID: id, updated: true, link: ctx.request.path};
   } else {
     ctx.status = 400;
-    ctx.body = {error: "Failed to update book"};
+    ctx.body = {error: "Failed to update Review"};
   }
 }
-async function deleteBook(ctx) {
+async function deleteReview(ctx) {
   const id = ctx.params.id;
   const book = await model.getById(id);
   if (!book.length) {
     ctx.status = 404;
-    ctx.body = {error: "Book not found"};
+    ctx.body = {error: "Review not found"};
     return;
   }
 
@@ -88,7 +96,7 @@ async function deleteBook(ctx) {
   const permission = can.delete(ctx.state.user, book[0]); // This needs to be implemented based on your permissions logic
   if (!permission.granted) {
     ctx.status = 403;
-    ctx.body = {error: "Not allowed to delete this book"};
+    ctx.body = {error: "Not allowed to delete this review"};
     return;
   }
 
@@ -98,7 +106,7 @@ async function deleteBook(ctx) {
     ctx.body = {ID: id, deleted: true};
   } else {
     ctx.status = 400;
-    ctx.body = {error: "Failed to delete book"};
+    ctx.body = {error: "Failed to delete review"};
   }
 }
 

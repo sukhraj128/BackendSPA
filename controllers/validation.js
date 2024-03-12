@@ -1,5 +1,7 @@
 const {Validator, ValidationError} = require('jsonschema');
-const schema = require('../schemas/book.schema.js');
+const bookschema = require('../schemas/book.schema.js');
+const reviewschema = require('../schemas/review.schema.js');
+const userschema = require('../schemas/user.schema.js');
 const v = new Validator();
 
 exports.validateArticle = async (ctx, next) => {
@@ -12,7 +14,7 @@ exports.validateArticle = async (ctx, next) => {
   const body = ctx.request.body;
 
   try {
-    v.validate(body, schema, validationOptions);
+    v.validate(body, bookschema, validationOptions);
     await next();
   } catch (error) {
     if (error instanceof ValidationError) {
@@ -23,3 +25,45 @@ exports.validateArticle = async (ctx, next) => {
     }
   }
 }
+
+exports.validateReview = async (ctx, next) =>{
+  const validationOptions ={
+    throwError: true,
+    allowUnknownAttributes: false
+  };
+
+  const body = ctx.request.body;
+  try {
+    v.validate(body, reviewschema, validationOptions);
+    await next();
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      ctx.body = error;
+      ctx.status = 400;      
+    } else {
+      throw error;
+    }
+  }
+}
+
+exports.validateUser = async (ctx,next) =>{
+  const validationOptions ={
+    throwError: true,
+    allowUnknownAttributes: false
+  };
+
+  const body = ctx.request.body;
+  try {
+    v.validate(body, userschema, validationOptions);
+    await next();
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      ctx.body = error;
+      ctx.status = 400;      
+    } else {
+      throw error;
+    }
+  }
+} 
+
+
