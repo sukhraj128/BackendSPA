@@ -5,15 +5,12 @@ CREATE TABLE users (
     username VARCHAR(16) UNIQUE NOT NULL,
     about TEXT,
     dateRegistered DATETIME DEFAULT CURRENT_TIMESTAMP,
-    password VARCHAR(32),
+    password VARCHAR(256),
     passwordSalt VARCHAR(16),
     email VARCHAR(64) UNIQUE NOT NULL,
     avatarURL VARCHAR(64),
     PRIMARY KEY (ID)
 );
-
-
-
 
 CREATE TABLE authors (
     ID INT NOT NULL AUTO_INCREMENT,
@@ -47,3 +44,15 @@ CREATE TABLE Reviews (
     FOREIGN KEY (UserID) REFERENCES users(ID),
     FOREIGN KEY (BookID) REFERENCES Books(BookID)
 );
+
+CREATE TABLE roles (
+  name VARCHAR(16) UNIQUE NOT NULL,
+  description TEXT,
+  PRIMARY KEY (name)
+);
+
+
+ALTER TABLE users ADD COLUMN role VARCHAR(16) NOT NULL DEFAULT 'user' AFTER ID; UPDATE users SET role='user';
+UPDATE users SET role='admin' WHERE ID=1; /* use a valid ID from your own DB */
+ALTER TABLE users ADD FOREIGN KEY (role) REFERENCES roles (name);
+
