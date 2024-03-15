@@ -6,9 +6,12 @@ const bcrypt = require('bcrypt');
 const {validateUser} = require('../controllers/validation');
 const can = require('../permissions/users');
 
-const router = Router({prefix: '/api/v1/users'});
+//const router = Router({prefix: '/api/v1/users'});
+const prefix ='/api/v1/users'
+const router = Router({prefix: prefix})
 
 router.get('/', auth ,getAll);
+router.post('/login',auth,login);
 router.post('/', bodyParser(), validateUser ,createUser);
 router.get('/:id([0-9]{1,})', getById);
 router.put('/:id([0-9]{1,})', bodyParser(), updateUser);
@@ -74,5 +77,14 @@ async function deleteUser(ctx) {
     ctx.body = {error: "User not found"};
   }
 }
+async function login(ctx) {
+  // return any details needed by the client
+  const {ID, username, email, avatarURL} = ctx.state.user
+  const links = {
+    self: `https://${ctx.host}${prefix}/${ID}`
+  }
+  ctx.body = {ID, username, email, avatarURL, links};
+}
+
 
 module.exports = router;
