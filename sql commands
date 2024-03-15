@@ -56,3 +56,14 @@ ALTER TABLE users ADD COLUMN role VARCHAR(16) NOT NULL DEFAULT 'user' AFTER ID; 
 UPDATE users SET role='admin' WHERE ID=1; /* use a valid ID from your own DB */
 ALTER TABLE users ADD FOREIGN KEY (role) REFERENCES roles (name);
 
+CREATE TABLE bookLikes (
+    bookID INT NOT NULL,
+    userID INT NOT NULL,
+    FOREIGN KEY (bookID) REFERENCES Books (BookID) ON DELETE CASCADE,
+    FOREIGN KEY (userID) REFERENCES users (ID) ON DELETE CASCADE,
+    PRIMARY KEY (bookID, userID)
+);
+
+ALTER TABLE Books
+    ADD COLUMN imageURL VARCHAR(2048)
+    ;
