@@ -36,3 +36,14 @@ exports.delete = async function deleteBook(id) {
   return data;
 }
 
+exports.getByBookId = async function getByBookId(bookId) {
+  let query = `
+    SELECT Reviews.ReviewID, Reviews.Rating, Reviews.ReviewText, Reviews.CreatedAt, users.username
+    FROM Reviews
+    JOIN users ON Reviews.UserID = users.ID
+    WHERE Reviews.BookID = ?;`;
+  let values = [bookId];
+  let data = await db.run_query(query, values);
+  return data;
+}
+

@@ -31,6 +31,11 @@ module.exports = {
       "type": "string",
       "format": "date-time",
       "description": "The timestamp when the book record was created, defaulting to the current timestamp."
+    },
+    "imageURL":{
+      "type": "string",
+      "maxLength": 2048,
+      "description": "Image URL of Cover"
     }
   },
   "required": ["Title", "AuthorID"],
