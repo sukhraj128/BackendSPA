@@ -7,7 +7,11 @@ const books = require('./routes/books.js');
 const users = require('./routes/users.js');
 const reviews = require('./routes/reviews.js');
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://scubapromo-quartermagnet-3001.codio-box.uk',
+  allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
+  credentials: true
+}));
 app.use(special.routes());
 app.use(books.routes());
 app.use(users.routes());

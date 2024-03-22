@@ -2,7 +2,7 @@ const db = require('../helpers/database');
 //get a single user by its id
 exports.getById = async function getById (id) {
   const query = "SELECT * FROM users WHERE ID = ?;";
-  const values = {id};
+  const values = [id];
   const data = await db.run_query(query,values);
   return data;
 }

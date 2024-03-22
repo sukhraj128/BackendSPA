@@ -5,6 +5,8 @@ const auth = require('../controllers/auth');
 const {validateArticle} = require('../controllers/validation');
 const can = require('../permissions/books');
 const likes = require('../models/likes');
+const jwtStrat = require('../strategies/jwt')
+
 //const router = Router({prefix: '/api/v1/books'});
 const prefix = '/api/v1/books';
 const router = Router({prefix: prefix});
@@ -15,8 +17,8 @@ router.get('/:id([0-9]{1,})', getById);
 router.put('/:id([0-9]{1,})', bodyParser(), auth ,validateArticle ,updateBook);
 router.del('/:id([0-9]{1,})', auth,deleteBook);
 router.get('/:id([0-9]{1,})/likes', likesCount);
-router.post('/:id([0-9]{1,})/likes', auth, likePost);
-router.del('/:id([0-9]{1,})/likes', auth, dislikePost);
+router.post('/:id([0-9]{1,})/likes', jwtStrat.verifyToken,likePost);
+router.del('/:id([0-9]{1,})/likes', jwtStrat.verifyToken ,dislikePost);
 
 
 async function getAll(ctx) {
@@ -129,20 +131,30 @@ async function likesCount(ctx) {
 }
 
 async function likePost(ctx) {
-  // For you TODO: add error handling and error response code
-  const id = parseInt(ctx.params.id);
-  const uid = ctx.state.user.ID;
-  const result = await likes.like(id, uid);
+ const bookID = parseInt(ctx.params.id);
+ const userID = ctx.state.user.id; // Ensure this matches how you've attached the user ID
+
+  if (!userID) {
+    ctx.status = 400; // Or some other appropriate status
+    ctx.body = { error: "User ID is undefined" };
+    return;
+  }
+  const result = await likes.like(bookID, userID);
   console.log(result);
   ctx.body = result.affectedRows ? {message: "liked"} : {message: "error"};
 }
 
 async function dislikePost(ctx) {
-  // For you TODO: add error handling and error response code
-  const id = parseInt(ctx.params.id);
-  const uid = ctx.state.user.ID;
-  const result = await likes.dislike(id, uid);
-  console.log(result);
+  const bookID = parseInt(ctx.params.id);
+  const userID = ctx.state.user.id;
+
+  if (!userID) {
+    ctx.status = 400; 
+    ctx.body = { error: "User ID is undefined" };
+    return;
+  }
+
+  const result = await likes.dislike(bookID, userID);
   ctx.body = result.affectedRows ? {message: "disliked"} : {message: "error"};
 }
 

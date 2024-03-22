@@ -5,13 +5,13 @@ const auth = require('../controllers/auth')
 const bcrypt = require('bcrypt');
 const {validateUser} = require('../controllers/validation');
 const can = require('../permissions/users');
-
+const jwtStrat = require('../strategies/jwt')
 //const router = Router({prefix: '/api/v1/users'});
 const prefix ='/api/v1/users'
 const router = Router({prefix: prefix})
 
-router.get('/', auth ,getAll);
-router.post('/login',auth,login);
+router.get('/',auth ,getAll);
+router.post('/login', bodyParser(),login);
 router.post('/', bodyParser(), validateUser ,createUser);
 router.get('/:id([0-9]{1,})', getById);
 router.put('/:id([0-9]{1,})', bodyParser(), updateUser);
@@ -77,14 +77,56 @@ async function deleteUser(ctx) {
     ctx.body = {error: "User not found"};
   }
 }
-async function login(ctx) {
+//async function login(ctx) {
   // return any details needed by the client
-  const {ID, username, email, avatarURL} = ctx.state.user
-  const links = {
-    self: `https://${ctx.host}${prefix}/${ID}`
-  }
-  ctx.body = {ID, username, email, avatarURL, links};
-}
+ // const {ID, username, email, avatarURL} = ctx.state.user
+ // const links = {
+ //   self: `https://${ctx.host}${prefix}/${ID}`
+ // }
+ // ctx.body = {ID, username, email, avatarURL, links};
+//}
 
+async function login(ctx) {
+  const { username, password } = ctx.request.body;
+
+  // Attempt to find the user by their username
+  const users = await model.findByUsername(username);
+  if (users.length) {
+    const user = users[0];
+
+    // Verify the password
+    if (bcrypt.compareSync(password, user.password)) {
+      // Password is correct, generate a JWT token
+      const token = jwtStrat.generateToken(user);
+
+      // Prepare links and user details for the response
+      const links = {
+        self: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}`,
+      };
+
+      // Return the token and user details
+      ctx.status = 200;
+      ctx.body = {
+        message: "Login successful",
+        token,
+        user: {
+          ID: user.ID,
+          username: user.username,
+          email: user.email,
+          avatarURL: user.avatarURL,
+          links
+        }
+      };
+    } else {
+      // Password is incorrect
+      ctx.status = 401; // Unauthorized
+      ctx.body = { message: 'Authentication failed' };
+    }
+  } else {
+    // No user found with the provided username
+    ctx.status = 404; // Not Found
+    ctx.body = { message: 'User not found' };
+  }
+}
 
 module.exports = router;

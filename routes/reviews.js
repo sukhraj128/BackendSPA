@@ -4,14 +4,18 @@ const model = require('../models/reviews');
 const auth = require('../controllers/auth');
 const {validateReview} = require('../controllers/validation');
 const can = require('../permissions/reviews');
+const jwtStrat = require('../strategies/jwt')
+
 
 const router = Router({prefix: '/api/v1/reviews'});
 
 router.get('/', getAll);
-router.post('/', bodyParser(), validateReview ,auth, createReview);
+router.post('/books/:BookID([0-9]{1,})', jwtStrat.verifyToken, bodyParser(), validateReview, createReview);
 router.get('/:id([0-9]{1,})', getById);
 router.put('/:id([0-9]{1,})', bodyParser(), auth  ,updateReview);
 router.del('/:id([0-9]{1,})', auth,deleteReview);
+
+router.get('/books/:BookID([0-9]{1,})', getByBookId);
 
 async function getAll(ctx) {
   let books = await model.getAll();
@@ -29,7 +33,9 @@ async function getById(ctx) {
 }
 
 async function createReview(ctx) {
-  const userID = ctx.state.user.ID;
+  const userID = ctx.state.user.id;
+  const BookID = ctx.params.BookID;
+
   const permission = can.create(ctx.state.user);
 
   if (!permission.granted) {
@@ -38,9 +44,9 @@ async function createReview(ctx) {
     return;
   }
 
-  const { BookID, Rating, ReviewText } = ctx.request.body;
+  const { Rating, ReviewText } = ctx.request.body;
   const reviewData = {
-    UserID: userID, 
+    UserID: userID, // Use the lowercase 'id' to match the JWT token structure
     BookID,
     Rating,
     ReviewText,
@@ -107,6 +113,17 @@ async function deleteReview(ctx) {
   } else {
     ctx.status = 400;
     ctx.body = {error: "Failed to delete review"};
+  }
+}
+
+async function getByBookId(ctx) {
+  const bookId = ctx.params.BookID; 
+  const reviews = await model.getByBookId(bookId);
+  if (reviews && reviews.length) {
+    ctx.body = reviews;
+  } else {
+    ctx.status = 404;
+    ctx.body = { error: "No reviews found for this book" };
   }
 }
 
