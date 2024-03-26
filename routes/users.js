@@ -10,12 +10,12 @@ const jwtStrat = require('../strategies/jwt')
 const prefix ='/api/v1/users'
 const router = Router({prefix: prefix})
 
-router.get('/',auth ,getAll);
+router.get('/',bodyParser() ,jwtStrat.verifyToken,getAll);
 router.post('/login', bodyParser(),login);
 router.post('/', bodyParser(), validateUser ,createUser);
 router.get('/:id([0-9]{1,})', getById);
 router.put('/:id([0-9]{1,})', bodyParser(), updateUser);
-router.del('/:id([0-9]{1,})', deleteUser);
+router.del('/:id([0-9]{1,})/delete', jwtStrat.verifyToken ,deleteUser);
 
 async function getAll(ctx) {
   const permission = can.readAll(ctx.state.user);
@@ -24,7 +24,14 @@ async function getAll(ctx) {
   } else {
     const result = await model.getAll();
     if (result.length) {
-      ctx.body = result;
+      ctx.body = result.map(user => ({
+        ...user,
+        links: {
+          self: `${ctx.origin}${prefix}/${user.ID}`,
+          update: `${ctx.origin}${prefix}/${user.ID}/update`,
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
+        }
+      }));
     }    
   }
 }
@@ -40,7 +47,7 @@ async function getById(ctx) {
 
 async function createUser(ctx) {
   const body = ctx.request.body;
-  const hash = bcrypt.hashSync(body.password, 10) // 10 is number of rounds
+  const hash = bcrypt.hashSync(body.password, 10)
   body.password = hash;
   const result = await model.add(body);
   if (result.affectedRows) {
@@ -68,12 +75,12 @@ async function updateUser(ctx) {
 
 async function deleteUser(ctx) {
   const id = ctx.params.id;
-  const result = await model.delete(id); // Assuming a delete method exists in your model
+  const result = await model.delById(id); 
   if (result.affectedRows) {
-    ctx.status = 200; // Successfully deleted
+    ctx.status = 200; 
     ctx.body = {ID: id, deleted: true};
   } else {
-    ctx.status = 404; // No user found to delete
+    ctx.status = 404; 
     ctx.body = {error: "User not found"};
   }
 }
@@ -111,6 +118,7 @@ async function login(ctx) {
         token,
         user: {
           ID: user.ID,
+          role: user.role,
           username: user.username,
           email: user.email,
           avatarURL: user.avatarURL,

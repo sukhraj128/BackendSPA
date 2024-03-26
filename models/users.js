@@ -30,7 +30,7 @@ exports.add = async function add (user) {
 //delete by id
 exports.delById = async function delById (id) {
   const query = "DELETE FROM users WHERE ID =?;";
-  const values = {id};
+  const values = [id];
   const data = await db.run_query(query, values);
   return data;
 }
