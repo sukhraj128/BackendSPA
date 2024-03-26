@@ -14,7 +14,7 @@ router.get('/',bodyParser() ,jwtStrat.verifyToken,getAll);
 router.post('/login', bodyParser(),login);
 router.post('/', bodyParser(), validateUser ,createUser);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), updateUser);
+router.put('/:id([0-9]{1,})/update', jwtStrat.verifyToken, bodyParser(), updateUser);
 router.del('/:id([0-9]{1,})/delete', jwtStrat.verifyToken ,deleteUser);
 
 async function getAll(ctx) {
@@ -28,7 +28,7 @@ async function getAll(ctx) {
         ...user,
         links: {
           self: `${ctx.origin}${prefix}/${user.ID}`,
-          update: `${ctx.origin}${prefix}/${user.ID}/update`,
+          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
           delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
         }
       }));
@@ -59,18 +59,24 @@ async function createUser(ctx) {
 
 async function updateUser(ctx) {
   const id = ctx.params.id;
-  let resylt = await model.getById(id);
+  let result = await model.getById(id);
   if(result.length){
     let user = result[0];
-    const {ID, dateRegistered, ...body} = ctx.request.body;
+    const {dateRegistered, ...body} = ctx.request.body; // Exclude non-updatable fields
     Object.assign(user, body);
     result = await model.update(user);
     if (result.affectedRows) {
-      ctx.body = {ID: id, updated: true, link: ctx.request.path};
+      ctx.body = {
+        ID: id, 
+        updated: true,
+        links: {
+          self: `https://${ctx.host}${prefix}/${id}`,
+          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${id}/update`,
+          delete: `https://${ctx.host}${prefix}/${id}/delete`
+        }
+      };
     }
-
   }
-
 }
 
 async function deleteUser(ctx) {
@@ -109,6 +115,8 @@ async function login(ctx) {
       // Prepare links and user details for the response
       const links = {
         self: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}`,
+        update: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}/update`,
+        delete: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}/delete`
       };
 
       // Return the token and user details
