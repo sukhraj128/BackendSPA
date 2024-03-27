@@ -14,8 +14,8 @@ const router = Router({prefix: prefix});
 router.get('/', getAll);
 router.post('/', bodyParser(), auth, validateArticle ,createBook);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), auth ,validateArticle ,updateBook);
-router.del('/:id([0-9]{1,})', auth,deleteBook);
+router.put('/:id([0-9]{1,})', bodyParser(), jwtStrat.verifyToken ,validateArticle ,updateBook);
+router.del('/:id([0-9]{1,})', jwtStrat.verifyToken, deleteBook);
 router.get('/:id([0-9]{1,})/likes', likesCount);
 router.post('/:id([0-9]{1,})/likes', jwtStrat.verifyToken,likePost);
 router.del('/:id([0-9]{1,})/likes', jwtStrat.verifyToken ,dislikePost);
@@ -26,10 +26,7 @@ async function getAll(ctx) {
   const result = await model.getAll(page, limit, order, direction);
   if (result.length) {
     const body = result.map(post => {
-      // extract the post fields we want to send back (summary details)
       const {BookID, Title, PublicationYear , Genre, AuthorID, imageURL} = post;
-      // add links to the post summaries for HATEOAS compliance
-      // clients can follow these to find related resources
       const links = {
         likes: `https://${ctx.host}${prefix}/${BookID}/likes`,
         self: `https://${ctx.host}${prefix}/${BookID}`

@@ -13,7 +13,7 @@ const router = Router({prefix: prefix})
 router.get('/',bodyParser() ,jwtStrat.verifyToken,getAll);
 router.post('/login', bodyParser(),login);
 router.post('/', bodyParser(), validateUser ,createUser);
-router.get('/:id([0-9]{1,})', getById);
+router.get('/:id([0-9]{1,})', jwtStrat.verifyToken,getById);
 router.put('/:id([0-9]{1,})/update', jwtStrat.verifyToken, bodyParser(), updateUser);
 router.del('/:id([0-9]{1,})/delete', jwtStrat.verifyToken ,deleteUser);
 

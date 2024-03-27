@@ -12,8 +12,8 @@ const router = Router({prefix: '/api/v1/reviews'});
 router.get('/', getAll);
 router.post('/books/:BookID([0-9]{1,})', jwtStrat.verifyToken, bodyParser(), validateReview, createReview);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), auth  ,updateReview);
-router.del('/:id([0-9]{1,})', auth,deleteReview);
+router.put('/:id([0-9]{1,})', bodyParser(), jwtStrat.verifyToken  ,updateReview);
+router.del('/:id([0-9]{1,})', jwtStrat.verifyToken, deleteReview);
 
 router.get('/books/:BookID([0-9]{1,})', getByBookId);
 
@@ -46,7 +46,7 @@ async function createReview(ctx) {
 
   const { Rating, ReviewText } = ctx.request.body;
   const reviewData = {
-    UserID: userID, // Use the lowercase 'id' to match the JWT token structure
+    UserID: userID, 
     BookID,
     Rating,
     ReviewText,
@@ -72,7 +72,7 @@ async function updateReview(ctx) {
   }
 
   console.log(ctx.state.user);
-  const permission = can.update(ctx.state.user, book[0]); // This needs to be implemented based on your permissions logic
+  const permission = can.update(ctx.state.user, book[0]); 
   if (!permission.granted) {
     ctx.status = 403;
     ctx.body = {error: "Not allowed to edit this Review"};
@@ -98,8 +98,6 @@ async function deleteReview(ctx) {
     return;
   }
 
-  // Permission check should be based on book ownership or role
-  const permission = can.delete(ctx.state.user, book[0]); // This needs to be implemented based on your permissions logic
   if (!permission.granted) {
     ctx.status = 403;
     ctx.body = {error: "Not allowed to delete this review"};
