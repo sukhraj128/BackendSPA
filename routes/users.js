@@ -27,7 +27,8 @@ async function getAll(ctx) {
       ctx.body = result.map(user => ({
         ...user,
         links: {
-          self: `${ctx.origin}${prefix}/${user.ID}`,
+          self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
+          getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
           update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
           delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
         }
@@ -70,9 +71,10 @@ async function updateUser(ctx) {
         ID: id, 
         updated: true,
         links: {
-          self: `https://${ctx.host}${prefix}/${id}`,
-          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${id}/update`,
-          delete: `https://${ctx.host}${prefix}/${id}/delete`
+          self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
+          getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
+          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
         }
       };
     }
@@ -113,11 +115,12 @@ async function login(ctx) {
       const token = jwtStrat.generateToken(user);
 
       // Prepare links and user details for the response
-      const links = {
-        self: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}`,
-        update: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}/update`,
-        delete: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}/delete`
-      };
+      const links ={
+          self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
+          getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
+          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
+        }
 
       // Return the token and user details
       ctx.status = 200;

@@ -16,6 +16,6 @@ ac.grant('admin').execute('delete').on('review');
 
 // Helper functions to check permissions
 exports.read = (requester) => ac.can(requester.role).execute('read').sync().on('review');
-exports.update = (requester, data) => ac.can(requester.role).context({requester: requester.ID, owner: data.UserID}).execute('update').sync().on('review');
+exports.update = (requester, data) => ac.can(requester.role).context({requester: requester.id, owner: data.UserID}).execute('update').sync().on('review');
 exports.create = (requester) => ac.can(requester.role).execute('create').sync().on('review');
-exports.delete = (requester, data) => ac.can(requester.role).context({requester: requester.ID, owner: data.UserID}).execute('delete').sync().on('review');
+exports.delete = (requester, data) => ac.can(requester.role).context({requester: requester.id, owner: data.UserID}).execute('delete').sync().on('review');

@@ -18,17 +18,30 @@ router.del('/:id([0-9]{1,})', jwtStrat.verifyToken, deleteReview);
 router.get('/books/:BookID([0-9]{1,})', getByBookId);
 
 async function getAll(ctx) {
-  let books = await model.getAll();
-  if (books.length) {
-    ctx.body = books;
+  let reviews = await model.getAll();
+  if (reviews.length) {
+    ctx.body = reviews.map(review => ({
+      ...review,
+      links: {
+        self: `${ctx.origin}/api/v1/reviews/${review.ID}`,
+        create: `${ctx.origin}/api/v1/reviews/books/${review.BookID}`
+      }
+    }));
   }
 }
 
 async function getById(ctx) {
   let id = ctx.params.id;
-  let book = await model.getById(id);
-  if (book.length) {
-    ctx.body = book[0];
+  let review = await model.getById(id);
+  if (review.length) {
+    ctx.body = {
+      ...review[0],
+      links: {
+        update: `${ctx.origin}/api/v1/reviews/${id}`,
+        delete: `${ctx.origin}/api/v1/reviews/${id}`,
+        allReviews: `${ctx.origin}/api/v1/reviews`
+      }
+    };
   }
 }
 
@@ -55,7 +68,14 @@ async function createReview(ctx) {
   let result = await model.add(reviewData);
   if (result) {
     ctx.status = 201;
-    ctx.body = { ID: result.insertId };
+    ctx.body = { 
+      ID: result.insertId,
+      links: {
+        self: `${ctx.origin}/api/v1/reviews/${result.insertId}`,
+        update: `${ctx.origin}/api/v1/reviews/${result.insertId}`,
+        delete: `${ctx.origin}/api/v1/reviews/${result.insertId}`
+      }
+    };
   } else {
     ctx.status = 400;
     ctx.body = { error: "Failed to create Review" };
@@ -70,7 +90,6 @@ async function updateReview(ctx) {
     ctx.body = {error: "Review not found"};
     return;
   }
-
   console.log(ctx.state.user);
   const permission = can.update(ctx.state.user, book[0]); 
   if (!permission.granted) {
@@ -83,7 +102,13 @@ async function updateReview(ctx) {
   const result = await model.update(id, updateData);
   if (result.affectedRows) {
     ctx.status = 200;
-    ctx.body = {ID: id, updated: true, link: ctx.request.path};
+    ctx.body = {
+      ID: id, updated: true, 
+      links: {
+        self: `${ctx.origin}/api/v1/reviews/${id}`,
+        delete: `${ctx.origin}/api/v1/reviews/${id}`
+      }
+    };
   } else {
     ctx.status = 400;
     ctx.body = {error: "Failed to update Review"};
@@ -91,34 +116,46 @@ async function updateReview(ctx) {
 }
 async function deleteReview(ctx) {
   const id = ctx.params.id;
-  const book = await model.getById(id);
-  if (!book.length) {
+  const review = await model.getById(id);
+  if (!review.length) {
     ctx.status = 404;
-    ctx.body = {error: "Review not found"};
+    ctx.body = { error: "Review not found" };
     return;
   }
-
+  const permission = can.delete(ctx.state.user, review[0]);
   if (!permission.granted) {
     ctx.status = 403;
-    ctx.body = {error: "Not allowed to delete this review"};
+    ctx.body = { error: "Not allowed to delete this review" };
     return;
   }
 
   const result = await model.delete(id);
   if (result.affectedRows) {
     ctx.status = 200;
-    ctx.body = {ID: id, deleted: true};
+    ctx.body = {
+      ID: id, deleted: true,
+      links: {
+        allReviews: `${ctx.origin}/api/v1/reviews`
+      }
+    };
   } else {
     ctx.status = 400;
-    ctx.body = {error: "Failed to delete review"};
+    ctx.body = { error: "Failed to delete review" };
   }
 }
 
 async function getByBookId(ctx) {
-  const bookId = ctx.params.BookID; 
+  const bookId = ctx.params.BookID;
+  console.log(bookId); 
   const reviews = await model.getByBookId(bookId);
   if (reviews && reviews.length) {
-    ctx.body = reviews;
+    ctx.body = reviews.map(review => ({
+      ...review,
+      links: {
+        self: `${ctx.origin}/api/v1/reviews/${review.ID}`,
+        create: `${ctx.origin}/api/v1/reviews/books/${bookId}`
+      }
+    }));
   } else {
     ctx.status = 404;
     ctx.body = { error: "No reviews found for this book" };
