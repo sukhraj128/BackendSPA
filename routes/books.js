@@ -85,7 +85,7 @@ async function updateBook(ctx) {
   }
 
 
-  const permission = can.update(ctx.state.user, book[0]); // This needs to be implemented based on your permissions logic
+  const permission = can.update(ctx.state.user, book[0]); // permissions logic
   if (!permission.granted) {
     ctx.status = 403;
     ctx.body = {error: "Not allowed to edit this book"};

@@ -63,7 +63,7 @@ async function updateUser(ctx) {
   let result = await model.getById(id);
   if(result.length){
     let user = result[0];
-    const {dateRegistered, ...body} = ctx.request.body; // Exclude non-updatable fields
+    const {dateRegistered, ...body} = ctx.request.body; 
     Object.assign(user, body);
     result = await model.update(user);
     if (result.affectedRows) {
