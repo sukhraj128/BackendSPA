@@ -30,7 +30,8 @@ async function getAll(ctx) {
           self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
           getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
           update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
-          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`,
+          reviews: `https://scubapromo-quartermagnet-3000.codio-box.uk/reviews/user/${user.ID}`
         }
       }));
     }    
@@ -119,7 +120,8 @@ async function login(ctx) {
           self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
           getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
           update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
-          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`,
+          reviews: `https://scubapromo-quartermagnet-3000.codio-box.uk/api/v1/reviews/users/${user.ID}`
         }
 
       // Return the token and user details

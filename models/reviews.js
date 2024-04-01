@@ -47,3 +47,18 @@ exports.getByBookId = async function getByBookId(bookId) {
   return data;
 }
 
+exports.getByUserId = async function getByUserId(userId) {
+  let query = `
+    SELECT Reviews.ReviewID, Reviews.BookID, Reviews.Rating, Reviews.ReviewText, Reviews.CreatedAt, 
+           Books.Title AS BookTitle, Books.PublicationYear, Books.Genre, 
+           users.username, users.firstName, users.lastName
+    FROM Reviews
+    JOIN users ON Reviews.UserID = users.ID
+    JOIN Books ON Reviews.BookID = Books.BookID
+    WHERE Reviews.UserID = ?;
+  `;
+  let values = [userId];
+  let data = await db.run_query(query, values);
+  return data;
+}
+

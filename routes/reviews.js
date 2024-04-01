@@ -16,6 +16,7 @@ router.put('/:id([0-9]{1,})', bodyParser(), jwtStrat.verifyToken  ,updateReview)
 router.del('/:id([0-9]{1,})', jwtStrat.verifyToken, deleteReview);
 
 router.get('/books/:BookID([0-9]{1,})', getByBookId);
+router.get('/users/:UserID([0-9]{1,})',getByUserId);
 
 async function getAll(ctx) {
   let reviews = await model.getAll();
@@ -159,6 +160,25 @@ async function getByBookId(ctx) {
   } else {
     ctx.status = 404;
     ctx.body = { error: "No reviews found for this book" };
+  }
+}
+
+async function getByUserId(ctx){
+  const userId = ctx.params.UserID;
+  console.log(userId);
+  const reviews = await model.getByUserId(userId);
+  if (reviews && reviews.length){
+    ctx.body = reviews.map(review => ({
+      ...review,
+      links: {
+        self: `${ctx.origin}/api/v1/reviews/${review.ReviewID}`,
+        book: `${ctx.origin}/api/v1/books/${review.BookID}`
+        
+      }
+    }));
+  }else{
+    ctx.status = 404;
+    ctx.body = {error: "No reviews found for this user"};
   }
 }
 
