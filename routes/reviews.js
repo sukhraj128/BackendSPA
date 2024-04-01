@@ -12,7 +12,7 @@ const router = Router({prefix: '/api/v1/reviews'});
 router.get('/', getAll);
 router.post('/books/:BookID([0-9]{1,})', jwtStrat.verifyToken, bodyParser(), validateReview, createReview);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), jwtStrat.verifyToken  ,updateReview);
+router.put('/:id([0-9]{1,})', bodyParser(), validateReview ,jwtStrat.verifyToken  ,updateReview);
 router.del('/:id([0-9]{1,})', jwtStrat.verifyToken, deleteReview);
 
 router.get('/books/:BookID([0-9]{1,})', getByBookId);

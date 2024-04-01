@@ -64,7 +64,7 @@ describe('Author Routes Integration Tests', () => {
 
   describe('PUT /api/v1/authors/:id', () => {
     it('updates an author details', async () => {
-      const authorId = 21; // Example author ID
+      const authorId = 13; // Example author ID
       const res = await request(app.callback())
         .put(`/api/v1/authors/${authorId}`)
         .set('Authorization', `Bearer ${token}`)
@@ -140,7 +140,7 @@ describe('Author Routes Integration Tests with User 2', () => {
 
   describe('PUT /api/v1/authors/:id', () => {
     it('prevents updating an author\'s details', async () => {
-      const authorId = 21; // Example author ID
+      const authorId = 13; // Example author ID
       const res = await request(app.callback())
         .put(`/api/v1/authors/${authorId}`)
         .set('Authorization', `Bearer ${token}`)

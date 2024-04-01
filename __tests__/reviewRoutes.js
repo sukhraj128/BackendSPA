@@ -126,7 +126,7 @@ describe('Review Routes Integration Tests for User Role', () => {
   describe('PUT /api/v1/reviews/:id', () => {
     it('allows a user to update their own review', async () => {
       // Example review ID that this user owns
-      const reviewId = 22; 
+      const reviewId = 35; 
       const updatedReviewData = {
         Rating: 4,
         ReviewText: "Still good, but found some issues on second reading."
@@ -144,7 +144,7 @@ describe('Review Routes Integration Tests for User Role', () => {
   describe('DELETE /api/v1/reviews/:id', () => {
     it('allows a user to delete their own review', async () => {
       // Example review ID that this user owns
-      const reviewId = 22; // Adjust based on the actual ID after creating a review
+      const reviewId = 35; // Adjust based on the actual ID after creating a review
       const res = await request(app.callback())
         .delete(`/api/v1/reviews/${reviewId}`)
         .set('Authorization', `Bearer ${token}`);
