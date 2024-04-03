@@ -117,12 +117,11 @@ describe('Review Routes Integration Tests for User Role', () => {
         .set('Authorization', `Bearer ${token}`)
         .send(reviewData);
 
-      expect(res.statusCode).toEqual(201); // Assuming 201 is used for successful creation
+      expect(res.statusCode).toEqual(201); //201 is used for successful 
       expect(res.body).toHaveProperty('ID');
     });
   });
 
-  // Assuming we simulate ownership by creating a review first and then trying to update it
   describe('PUT /api/v1/reviews/:id', () => {
     it('allows a user to update their own review', async () => {
       // Example review ID that this user owns
@@ -144,7 +143,7 @@ describe('Review Routes Integration Tests for User Role', () => {
   describe('DELETE /api/v1/reviews/:id', () => {
     it('allows a user to delete their own review', async () => {
       // Example review ID that this user owns
-      const reviewId = 35; // Adjust based on the actual ID after creating a review
+      const reviewId = 35; // Review ID
       const res = await request(app.callback())
         .delete(`/api/v1/reviews/${reviewId}`)
         .set('Authorization', `Bearer ${token}`);
@@ -156,7 +155,7 @@ describe('Review Routes Integration Tests for User Role', () => {
     describe('DELETE /api/v1/reviews/:id', () => {
     it('should return 403 Forbidden when trying to delete someone else\'s review', async () => {
       // Example review ID that this user does not own
-      const reviewId = 14; // Assuming this ID belongs to another user's review
+      const reviewId = 14; // ID for another users review
       const res = await request(app.callback())
         .delete(`/api/v1/reviews/${reviewId}`)
         .set('Authorization', `Bearer ${token}`);
@@ -169,7 +168,7 @@ describe('Review Routes Integration Tests for User Role', () => {
   describe('PUT /api/v1/reviews/:id', () => {
     it('should return 403 Forbidden when trying to update someone else\'s review', async () => {
       // Example review ID that this user does not own
-      const reviewId = 14; // Assuming this ID belongs to another user's review
+      const reviewId = 14; // ID belongs to another user's review
       const updatedReviewData = {
         Rating: 4,
         ReviewText: "Trying to update someone else's review."

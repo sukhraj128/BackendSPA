@@ -21,7 +21,7 @@ exports.validateArticle = async (ctx, next) => {
     if (error instanceof ValidationError) {
       console.error(error);
       ctx.status = 400
-      ctx.body = error;  // this is the line you update
+      ctx.body = error;  
   } else {
     throw error;
     }
@@ -42,7 +42,7 @@ exports.validateReview = async (ctx, next) =>{
     if (error instanceof ValidationError) {
       console.error(error);
       ctx.status = 400
-      ctx.body = error;  // this is the line you update
+      ctx.body = error;  
   } else {
     throw error;
 
@@ -64,7 +64,7 @@ exports.validateUser = async (ctx,next) =>{
     if (error instanceof ValidationError) {
       console.error(error);
       ctx.status = 400
-      ctx.body = error;  // this is the line you update
+      ctx.body = error;  
   } else {
     throw error;
     }

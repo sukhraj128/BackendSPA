@@ -31,8 +31,7 @@ describe('User Routes Integration Tests', () => {
 
       expect(loginResponse.statusCode).toEqual(200);
       expect(loginResponse.body).toHaveProperty('token');
-      token = loginResponse.body.token; // Store token for future requests
-    });
+      token = loginResponse.body.token; // Store token 
 
     it('fails to log in with incorrect password', async () => {
       const loginResponse = await request(app.callback())

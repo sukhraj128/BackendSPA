@@ -8,7 +8,7 @@ ac.grant('user')
 // Admin permissions: Only admins can read, update, and delete
 ac.grant('admin')
   .execute('read').on('author')
-  .execute('create').on('author')  // Assuming you want to include create permission explicitly
+  .execute('create').on('author') 
   .execute('update').on('author')
   .execute('delete').on('author');
 
