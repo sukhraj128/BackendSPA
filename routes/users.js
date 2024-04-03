@@ -10,12 +10,12 @@ const jwtStrat = require('../strategies/jwt')
 const prefix ='/api/v1/users'
 const router = Router({prefix: prefix})
 
-router.get('/',auth ,getAll);
+router.get('/',bodyParser() ,jwtStrat.verifyToken,getAll);
 router.post('/login', bodyParser(),login);
 router.post('/', bodyParser(), validateUser ,createUser);
-router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), updateUser);
-router.del('/:id([0-9]{1,})', deleteUser);
+router.get('/:id([0-9]{1,})', jwtStrat.verifyToken,getById);
+router.put('/:id([0-9]{1,})/update', jwtStrat.verifyToken, bodyParser(), updateUser);
+router.del('/:id([0-9]{1,})/delete', jwtStrat.verifyToken ,deleteUser);
 
 async function getAll(ctx) {
   const permission = can.readAll(ctx.state.user);
@@ -24,7 +24,16 @@ async function getAll(ctx) {
   } else {
     const result = await model.getAll();
     if (result.length) {
-      ctx.body = result;
+      ctx.body = result.map(user => ({
+        ...user,
+        links: {
+          self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
+          getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
+          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`,
+          reviews: `https://scubapromo-quartermagnet-3000.codio-box.uk/reviews/user/${user.ID}`
+        }
+      }));
     }    
   }
 }
@@ -40,7 +49,7 @@ async function getById(ctx) {
 
 async function createUser(ctx) {
   const body = ctx.request.body;
-  const hash = bcrypt.hashSync(body.password, 10) // 10 is number of rounds
+  const hash = bcrypt.hashSync(body.password, 10)
   body.password = hash;
   const result = await model.add(body);
   if (result.affectedRows) {
@@ -52,28 +61,35 @@ async function createUser(ctx) {
 
 async function updateUser(ctx) {
   const id = ctx.params.id;
-  let resylt = await model.getById(id);
+  let result = await model.getById(id);
   if(result.length){
     let user = result[0];
-    const {ID, dateRegistered, ...body} = ctx.request.body;
+    const {dateRegistered, ...body} = ctx.request.body; 
     Object.assign(user, body);
     result = await model.update(user);
     if (result.affectedRows) {
-      ctx.body = {ID: id, updated: true, link: ctx.request.path};
+      ctx.body = {
+        ID: id, 
+        updated: true,
+        links: {
+          self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
+          getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
+          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`
+        }
+      };
     }
-
   }
-
 }
 
 async function deleteUser(ctx) {
   const id = ctx.params.id;
-  const result = await model.delete(id); // Assuming a delete method exists in your model
+  const result = await model.delById(id); 
   if (result.affectedRows) {
-    ctx.status = 200; // Successfully deleted
+    ctx.status = 200; 
     ctx.body = {ID: id, deleted: true};
   } else {
-    ctx.status = 404; // No user found to delete
+    ctx.status = 404; 
     ctx.body = {error: "User not found"};
   }
 }
@@ -100,9 +116,13 @@ async function login(ctx) {
       const token = jwtStrat.generateToken(user);
 
       // Prepare links and user details for the response
-      const links = {
-        self: `https://${ctx.host}${ctx.router.opts.prefix}/${user.ID}`,
-      };
+      const links ={
+          self: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}`,
+          getAll: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}`,
+          update: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/update`,
+          delete: `https://scubapromo-quartermagnet-3000.codio-box.uk${prefix}/${user.ID}/delete`,
+          reviews: `https://scubapromo-quartermagnet-3000.codio-box.uk/api/v1/reviews/users/${user.ID}`
+        }
 
       // Return the token and user details
       ctx.status = 200;
@@ -111,6 +131,7 @@ async function login(ctx) {
         token,
         user: {
           ID: user.ID,
+          role: user.role,
           username: user.username,
           email: user.email,
           avatarURL: user.avatarURL,

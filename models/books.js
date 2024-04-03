@@ -10,7 +10,6 @@ exports.getById = async function getById (id) {
 
 //list all the book in the database
 exports.getAll = async function getAll (page, limit, order) {
-  // TODO: use page, limit, order to give pagination
   let query = "SELECT * FROM Books;";
   let data = await db.run_query(query);
   return data;
@@ -33,6 +32,15 @@ exports.delete = async function deleteBook(id) {
   let query = "DELETE FROM Books WHERE BookID = ?";
   let values = [id];
   let data = await db.run_query(query,values);
+  return data;
+}
+
+exports.getByAuthorId = async function getByAuthorId(authorId) {
+  let query = `
+    SELECT * FROM Books WHERE AuthorID = ?;
+  `;
+  let values = [authorId];
+  let data = await db.run_query(query, values);
   return data;
 }
 

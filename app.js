@@ -6,6 +6,7 @@ const special = require('./routes/special.js');
 const books = require('./routes/books.js');
 const users = require('./routes/users.js');
 const reviews = require('./routes/reviews.js');
+const authors = require('./routes/authors.js');
 
 app.use(cors({
   origin: 'https://scubapromo-quartermagnet-3001.codio-box.uk',
@@ -16,6 +17,7 @@ app.use(special.routes());
 app.use(books.routes());
 app.use(users.routes());
 app.use(reviews.routes());
+app.use(authors.routes());
 
 
 let port = process.env.PORT || 3000;

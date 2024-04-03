@@ -12,27 +12,26 @@ const prefix = '/api/v1/books';
 const router = Router({prefix: prefix});
 
 router.get('/', getAll);
-router.post('/', bodyParser(), auth, validateArticle ,createBook);
+router.post('/', bodyParser(), jwtStrat.verifyToken, validateArticle ,createBook);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), auth ,validateArticle ,updateBook);
-router.del('/:id([0-9]{1,})', auth,deleteBook);
+router.put('/:id([0-9]{1,})', bodyParser(), jwtStrat.verifyToken ,validateArticle ,updateBook);
+router.del('/:id([0-9]{1,})', jwtStrat.verifyToken, deleteBook);
 router.get('/:id([0-9]{1,})/likes', likesCount);
 router.post('/:id([0-9]{1,})/likes', jwtStrat.verifyToken,likePost);
 router.del('/:id([0-9]{1,})/likes', jwtStrat.verifyToken ,dislikePost);
-
+router.get('/by-author/:authorId([0-9]{1,})', getBooksByAuthorId);
 
 async function getAll(ctx) {
   const {page=1, limit=100, order="dateCreated", direction='ASC'} = ctx.request.query;
   const result = await model.getAll(page, limit, order, direction);
   if (result.length) {
     const body = result.map(post => {
-      // extract the post fields we want to send back (summary details)
       const {BookID, Title, PublicationYear , Genre, AuthorID, imageURL} = post;
-      // add links to the post summaries for HATEOAS compliance
-      // clients can follow these to find related resources
       const links = {
         likes: `https://${ctx.host}${prefix}/${BookID}/likes`,
-        self: `https://${ctx.host}${prefix}/${BookID}`
+        self: `https://${ctx.host}${prefix}/${BookID}`,
+        author: `https://${ctx.host}/api/v1/authors/by-book/${BookID}`,
+        byAuthor: `https://${ctx.host}${prefix}/by-author/${AuthorID}`,
       }
       return {BookID, Title, PublicationYear, Genre, AuthorID, imageURL,links};
     });
@@ -45,7 +44,14 @@ async function getById(ctx) {
   let id = ctx.params.id;
   let book = await model.getById(id);
   if (book.length) {
-    ctx.body = book[0];
+    const {BookID, Title, PublicationYear , Genre, AuthorID, imageURL} = book[0];
+    const links = {
+      likes: `https://${ctx.host}${prefix}/${BookID}/likes`,
+      self: `https://${ctx.host}${prefix}/${BookID}`,
+      author: `https://${ctx.host}/api/v1/authors/by-book/${BookID}`,
+      byAuthor: `https://${ctx.host}${prefix}/by-author/${AuthorID}`,
+    };
+    ctx.body = {BookID, Title, PublicationYear, Genre, AuthorID, imageURL, _links: links}; // Modified to include _links key
   }
 }
 
@@ -79,7 +85,7 @@ async function updateBook(ctx) {
   }
 
 
-  const permission = can.update(ctx.state.user, book[0]); // This needs to be implemented based on your permissions logic
+  const permission = can.update(ctx.state.user, book[0]); // permissions logic
   if (!permission.granted) {
     ctx.status = 403;
     ctx.body = {error: "Not allowed to edit this book"};
@@ -106,7 +112,7 @@ async function deleteBook(ctx) {
   }
 
   // Permission check should be based on book ownership or role
-  const permission = can.delete(ctx.state.user, book[0]); // This needs to be implemented based on your permissions logic
+  const permission = can.delete(ctx.state.user, book[0]); 
   if (!permission.granted) {
     ctx.status = 403;
     ctx.body = {error: "Not allowed to delete this book"};
@@ -124,7 +130,6 @@ async function deleteBook(ctx) {
 }
 
 async function likesCount(ctx) {
-  // For you TODO: add error handling and error response code
   const id = ctx.params.id;
   const result = await likes.count(id);
   ctx.body = result ? result : 0;
@@ -132,10 +137,10 @@ async function likesCount(ctx) {
 
 async function likePost(ctx) {
  const bookID = parseInt(ctx.params.id);
- const userID = ctx.state.user.id; // Ensure this matches how you've attached the user ID
+ const userID = ctx.state.user.id; 
 
   if (!userID) {
-    ctx.status = 400; // Or some other appropriate status
+    ctx.status = 400; 
     ctx.body = { error: "User ID is undefined" };
     return;
   }
@@ -156,6 +161,24 @@ async function dislikePost(ctx) {
 
   const result = await likes.dislike(bookID, userID);
   ctx.body = result.affectedRows ? {message: "disliked"} : {message: "error"};
+}
+async function getBooksByAuthorId(ctx) {
+  let authorId = ctx.params.authorId;
+  let books = await model.getByAuthorId(authorId);
+  if (books.length) {
+    const body = books.map(book => {
+      const { BookID, Title, PublicationYear, Genre, AuthorID, imageURL } = book;
+      const links = {
+        likes: `https://${ctx.host}${prefix}/${BookID}/likes`,
+        self: `https://${ctx.host}${prefix}/${BookID}`,
+      };
+      return { BookID, Title, PublicationYear, Genre, AuthorID, imageURL, links };
+    });
+    ctx.body = body;
+  } else {
+    ctx.status = 404;
+    ctx.body = { error: "No books found for the given author ID" };
+  }
 }
 
 
